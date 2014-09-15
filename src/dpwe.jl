@@ -34,7 +34,7 @@ function pvsample(b::AbstractArray, t::AbstractArray, hop::Integer=(size(b, 1)-1
 
     # Expected phase advance in each bin
     dphi = zeros(div(N,2)+1)
-    dphi[2:end] = (2pi*hop) / (N ./ [1:div(N, 2)])
+    dphi[2:end] = 2pi*hop/N .* [1:div(N, 2)]
 
     # Phase accumulator
     # Preset to phase of first frame for perfect reconstruction
