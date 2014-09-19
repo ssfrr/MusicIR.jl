@@ -114,12 +114,11 @@ function istft(d::AbstractArray, ftsize=2*(size(d,1)-1), h=0, w=0)
         h = floor(w/2)
     end
 
+    x = irfft(d, 1)
     # calculate the length of the output vector
     xlen = ftsize + (cols-1)*h
     x = zeros(xlen)
     for b in 0:h:(h*(cols-1))
-        ft = d[:,1+div(b,h)]
-        px = irfft(vec(ft), w)
         x[(b+1):(b+ftsize)] = x[(b+1):(b+ftsize)] + px.*win
     end
 

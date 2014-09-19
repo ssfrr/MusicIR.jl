@@ -1,8 +1,9 @@
 module MusicIR
 
+using ArrayViews
 using DSP
 
-export frame, stft, tcif, specgram, tcifgram
+export frame, stft, tcif, specgram, tcifgram, overlap_add
 # from dpwe.jl:
 export pvoc, istft
 include("dpwe.jl")
@@ -26,6 +27,19 @@ function frame(sig::AbstractArray, n::Integer, hop::Integer=n)
     frames
 end
 
+function overlap_add(frames::AbstractArray, hop::Integer=size(frames, 1))
+    # frames is a 2D array with each column being a frame
+    n, nframes = size(frames)
+    res_samples = (nframes-1) * hop + n
+    res = zeros(eltype(frames), res_samples)
+    for i in 1:nframes
+        start = (i-1) * hop + 1
+        res[start:start+n-1] = view(res, start:start+n-1) + frames[:, i]
+    end
+
+    res
+end
+
 function stft(arr::AbstractArray, n::Integer=1024, hop::Integer=div(n,2), window=hanning(n))
     frames = frame(arr, n, hop)
     windowed = similar(frames)
@@ -35,6 +49,11 @@ function stft(arr::AbstractArray, n::Integer=1024, hop::Integer=div(n,2), window
         end
     end
     spec = rfft(windowed, 1)
+end
+
+function istft(frames::AbstractArray, hop::Integer=div(size(arr, 1),2), window=hanning(size(arr, 1)))
+    time_frames = irfft(frames, 1)
+
 end
 
 function specgram(arr::AbstractArray, n::Integer=1024, hop::Integer=div(n,2), window=hanning(n), sr=44100)
