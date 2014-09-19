@@ -1,11 +1,16 @@
 module MusicIR
 
 using DSP
+using PyPlot
+using Color
 
 export frame, stft, tcif, specgram, tcifgram
 # from dpwe.jl:
 export pvoc, istft
 include("dpwe.jl")
+
+const alpha_crange = [AlphaColorValue(RGB(0,0,0), 0.0), AlphaColorValue(RGB(0,0,0), 1.0)]
+const alpha_cmap = ColorMap("alphablend", alpha_crange)
 
 function frame(sig::AbstractArray, n::Integer, hop::Integer=n)
     overlap = n - hop
@@ -40,7 +45,7 @@ end
 function specgram(arr::AbstractArray, n::Integer=1024, hop::Integer=div(n,2), window=hanning(n), sr=44100)
     frames = stft(arr, n, hop, window)
     extent=[0, size(frames, 2)*hop/sr, 0, sr/2]
-    imshow(log(1+1000*abs(frames)), aspect=:auto, origin=:lower, interpolation="none", extent=extent)
+    imshow(log(1+1000*abs(frames)), aspect=:auto, origin=:lower, interpolation="none", cmap=alpha_cmap, extent=extent)
 end
 
 phasewrap(x) = mod2pi(x+pi) - pi
@@ -79,11 +84,8 @@ function tcif(sig::AbstractArray, n::Integer, samplerate::Real, hop::Integer=div
 end
 
 function tcifgram(sig::AbstractArray, n::Integer, sr::Real, hop::Integer=div(n,2), window=hanning(n))
-    crange = [AlphaColorValue(RGB(0,0,0), 0.0), AlphaColorValue(RGB(0,0,0), 1.0)]
-    cmap = ColorMap("alphablend", crange)
-
     tcif_data = tcif(sig, n, sr, hop)
-    scatter(tcif_data[:, 1], tcif_data[:, 2], s=2, c=log(1+100*tcif_data[:, 3]), cmap=cmap, linewidths=0)
+    scatter(tcif_data[:, 1], tcif_data[:, 2], s=1, c=log(1+100*tcif_data[:, 3]), cmap=alpha_cmap, linewidths=0)
     ylim(0, sr/2)
     xlim(0, length(sig)/sr)
 end
