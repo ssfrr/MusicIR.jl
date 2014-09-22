@@ -65,7 +65,7 @@ function pvsample{T<:Complex}(b::Array{T}, t::AbstractArray, hop::Integer=(size(
     c
 end
 
-function istft{T<:Complex}(d::Array{T}, ftsize=2*(size(d,1)-1), h=0, w=0)
+function istft{T<:Complex}(d::Array{T}, ftsize=2*(size(d,1)-1), h=div(ftsize, 4), win=hanning(ftsize))
     # istft(d, F, W, H)
     # Inverse short-time Fourier transform.
     # Performs overlap-add resynthesis from the short-time Fourier transform
@@ -81,40 +81,12 @@ function istft{T<:Complex}(d::Array{T}, ftsize=2*(size(d,1)-1), h=0, w=0)
     if s[1] != (ftsize/2)+1
         error("number of rows should be fftsize/2+1")
     end
+    if length(win) != ftsize
+        error("window length ($(length(win))) should be the same as FFT size ($ftsize)")
+    end
     cols = s[2]
 
-    if length(w) == 1
-        if w == 0
-            # special case: rectangular window
-            win = ones(ftsize)
-        else
-            if rem(w, 2) == 0   # force window to be odd-len
-                w = w + 1
-            end
-            halflen = (w-1)/2
-            halff = ftsize/2
-            halfwin = 0.5 * ( 1 + cos( pi * (0:halflen)/halflen))
-            win = zeros(ftsize)
-            acthalflen = min(halff, halflen)
-            win[(halff+1):(halff+acthalflen)] = halfwin[1:acthalflen]
-            win[(halff+1):-1:(halff-acthalflen+2)] = halfwin[1:acthalflen]
-            # 2009-01-06: Make stft-istft loop be identity for 25% hop
-            # Effect of hanns at both ends is a cumulated cos^2 window (for
-            # r = 1 anyway); need to scale magnitudes by 2/3 for
-            # identity input/output
-            win = 2/3*win
-          end
-    else
-        win = w
-    end
-
-    w = length(win)
-    # now can set default hop
-    if h == 0 
-        h = floor(w/2)
-    end
-
-    timeframes = irfft(d, ftsize, 1)
+    timeframes::Array{Float32, 2} = irfft(d, ftsize, 1)
     # calculate the length of the output vector
     xlen = ftsize + (cols-1)*h
     x = zeros(xlen)
@@ -125,6 +97,13 @@ function istft{T<:Complex}(d::Array{T}, ftsize=2*(size(d,1)-1), h=0, w=0)
         start = (col-1)*h+1
         x[start:start+ftsize-1] = view(x, start:start+ftsize-1) + timeframes[:, col] .* win
     end
+
+    #for col in 1:cols
+    #    start = (col-1)*h
+    #    for i in 1:ftsize
+    #        x[start+i] += timeframes[i, col] * win[i]
+    #    end
+    #end
 
     x
 end
@@ -153,5 +132,5 @@ function pvoc(x, r, n=1024)
     X2 = pvsample(X, t, hop)
 
     # Invert to a waveform
-    y = istft(X2, n, hop, n)
+    y = istft(X2, n, hop, hanning(n))
 end
