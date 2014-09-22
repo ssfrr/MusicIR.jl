@@ -69,7 +69,8 @@ function specgram(arr::AbstractArray, n::Integer=1024, hop::Integer=div(n,2), wi
     imshow(log(1+1000*abs(frames)), aspect=:auto, origin=:lower, interpolation="none", extent=extent)
 end
 
-phasewrap(x) = mod2pi(x+pi) - pi
+#phasewrap(x::Real) = mod2pi(x+pi) - pi
+phasewrap(x::Real) = x - 2pi * round(x/(2pi))
 
 function tcif(sig::AbstractArray, n::Integer, samplerate::Real, hop::Integer=div(n,2), window=hanning(n))
     # Take the STFT and a 1-sample delayed STFT so we can get phase differences without aliasing
