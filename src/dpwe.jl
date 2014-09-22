@@ -114,12 +114,16 @@ function istft(d::AbstractArray, ftsize=2*(size(d,1)-1), h=0, w=0)
         h = floor(w/2)
     end
 
-    x = irfft(d, 1)
+    timeframes = irfft(d, ftsize, 1)
     # calculate the length of the output vector
     xlen = ftsize + (cols-1)*h
     x = zeros(xlen)
-    for b in 0:h:(h*(cols-1))
-        x[(b+1):(b+ftsize)] = x[(b+1):(b+ftsize)] + px.*win
+    #for b in 0:h:(h*(cols-1))
+    #    x[(b+1):(b+ftsize)] = x[(b+1):(b+ftsize)] + px.*win
+    #end
+    for col in 1:cols
+        start = (col-1)*h+1
+        x[start:start+ftsize-1] = view(x, start:start+ftsize-1) + timeframes[:, col] .* win
     end
 
     x

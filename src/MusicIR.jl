@@ -51,10 +51,16 @@ function stft(arr::AbstractArray, n::Integer=1024, hop::Integer=div(n,2), window
     spec = rfft(windowed, 1)
 end
 
-function istft(frames::AbstractArray, hop::Integer=div(size(arr, 1),2), window=hanning(size(arr, 1)))
-    time_frames = irfft(frames, 1)
-
-end
+#function istft(frames::AbstractArray, hop::Integer=div(size(arr, 1),2), window=hanning(size(arr, 1)))
+#    time_frames = irfft(frames, 1)
+#    # from dpwe: "Effect of hanns at both ends is a cumulated cos^2 window (for
+#    # r = 1 anyway); need to scale magnitudes by 2/3 for identity input/output"
+#
+#    # note that this assumes the window is hanning with 25% hop, we'll need to be more
+#    # clever for other windows
+#    window = 2/3*window
+#
+#end
 
 function specgram(arr::AbstractArray, n::Integer=1024, hop::Integer=div(n,2), window=hanning(n), sr=44100)
     frames = stft(arr, n, hop, window)
