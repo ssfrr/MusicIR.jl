@@ -2,6 +2,7 @@ module MusicIR
 
 using ArrayViews
 using DSP
+using Devectorize
 
 export frame, stft, tcif, specgram, tcifgram, overlap_add
 # from dpwe.jl:
