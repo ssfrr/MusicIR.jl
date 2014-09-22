@@ -93,17 +93,13 @@ function istft{T<:Complex}(d::Array{T}, ftsize=2*(size(d,1)-1), h=div(ftsize, 4)
     #for b in 0:h:(h*(cols-1))
     #    x[(b+1):(b+ftsize)] = x[(b+1):(b+ftsize)] + px.*win
     #end
-    for col in 1:cols
-        start = (col-1)*h+1
-        x[start:start+ftsize-1] = view(x, start:start+ftsize-1) + timeframes[:, col] .* win
-    end
 
-    #for col in 1:cols
-    #    start = (col-1)*h
-    #    for i in 1:ftsize
-    #        x[start+i] += timeframes[i, col] * win[i]
-    #    end
-    #end
+    for col in 1:cols
+        start = (col-1)*h
+        for i in 1:ftsize
+            x[start+i] += timeframes[i, col] * win[i]
+        end
+    end
 
     x
 end
